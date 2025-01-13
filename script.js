@@ -64,7 +64,7 @@ connectWalletBtn.addEventListener("click", async () => {
 
     const chainIdDec = parseInt(chainIdHex, 16);
     if (chainIdDec !== REQUIRED_CHAIN_ID_DEC) {
-      alert("Please switch to Sepolia (chainId 11155111) in your wallet and then reconnect.");
+      alert("Please switch to Sepolia (chainId 20143) in your wallet and then reconnect.");
       return;
     }
 
