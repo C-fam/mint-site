@@ -58,7 +58,7 @@ connectWalletBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Check chain ID to ensure user is on Sepolia
+    // Check chain ID to ensure user is on Monad Devnet
     const chainIdHex = await window.ethereum.request({ method: "eth_chainId" });
     console.log("chainIdHex:", chainIdHex);
 
@@ -101,14 +101,10 @@ mintBtn.addEventListener("click", async () => {
     const txReceipt = await txResponse.wait();
     console.log("Transaction confirmed:", txReceipt);
 
-    alert("NFT minted successfully!");
+    alert(`NFT minted successfully!\nTransaction Hash:\n${txReceipt.transactionHash}`);
 
     // Update minted count
     await updateMintedCount();
-
-    //★Open Monad Devnet scan in a new tab with the transaction hash
-    const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
-    window.open(explorerUrl, "_blank");
 
   } catch (error) {
     console.error("Mint error:", error);
