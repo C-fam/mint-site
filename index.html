@@ -20,7 +20,8 @@
     <section class="mint-container">
       <h2>Mint Your C's Family NFT</h2>
       <p>
-        Supply Remaining: <span id="supplyRemaining">--</span> / 50
+        Minted so far: <span id="mintedSoFar">--</span> <br />
+        Remaining supply: <span id="leftToMint">--</span> / 50
       </p>
       <button class="mint-button" id="mintBtn">Mint Now</button>
     </section>
@@ -31,109 +32,6 @@
   </footer>
 
   <!-- Main JavaScript -->
-  <script>
-    // Contract info
-    const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
-    const CONTRACT_ABI = [
-      "function mint() external",
-      "function mintedSoFar() external view returns (uint256)",
-      "function leftToMint() external view returns (uint256)"
-    ];
-
-    // The required chain ID in hex (20143 => 0x4EB7)
-    const REQUIRED_CHAIN_ID = "0x4EB7";
-
-    // DOM elements
-    const connectWalletBtn = document.getElementById("connectWalletBtn");
-    const walletStatus = document.getElementById("walletStatus");
-    const mintBtn = document.getElementById("mintBtn");
-    const supplyRemaining = document.getElementById("supplyRemaining");
-
-    // Global variables
-    let provider, signer, csFamilyContract;
-
-    // When the page loads, do nothing special. We'll handle connection on button click.
-    window.addEventListener("load", async () => {
-      if (typeof window.ethereum === "undefined") {
-        walletStatus.textContent = "No wallet found. Please install MetaMask.";
-      }
-    });
-
-    // Connect wallet button
-    connectWalletBtn.addEventListener("click", async () => {
-      if (!window.ethereum) {
-        alert("No wallet provider found. Please install MetaMask.");
-        return;
-      }
-
-      try {
-        // Check if the user is on the correct chain
-        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
-        if (currentChainId !== REQUIRED_CHAIN_ID) {
-          alert("Please switch to Monad Devnet (chainId 20143) in your wallet and then connect again.");
-          return;
-        }
-
-        // If chain is correct, request accounts
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        if (accounts.length > 0) {
-          walletStatus.textContent = `Connected: ${accounts[0]}`;
-
-          // Setup Ethers with the browser provider
-          provider = new ethers.BrowserProvider(window.ethereum);
-          signer = await provider.getSigner();
-          csFamilyContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-          // Update supply info
-          await updateSupplyInfo();
-        }
-      } catch (error) {
-        console.error(error);
-        walletStatus.textContent = "Connection error";
-      }
-    });
-
-    // Mint button
-    mintBtn.addEventListener("click", async () => {
-      try {
-        if (!csFamilyContract) {
-          alert("Please connect your wallet on Monad Devnet first.");
-          return;
-        }
-
-        // Call contract's mint()
-        const txResponse = await csFamilyContract.mint();
-        // Wait for transaction to be confirmed
-        const txReceipt = await txResponse.wait();
-
-        // After mint is confirmed
-        alert("NFT minted successfully!");
-
-        // Update supply info
-        await updateSupplyInfo();
-
-        // Open Monad Devnet explorer in a new tab with the transaction hash
-        // If you want to show the contract address or transaction, you can do so:
-        const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
-        window.open(explorerUrl, "_blank"); 
-      } catch (error) {
-        console.error("Mint error:", error);
-        alert(error.message || "Mint failed.");
-      }
-    });
-
-    // Function to update "Supply Remaining"
-    async function updateSupplyInfo() {
-      if (!csFamilyContract) return;
-      try {
-        const left = await csFamilyContract.leftToMint();
-        supplyRemaining.textContent = left.toString();
-      } catch (error) {
-        console.error("Error fetching supply info:", error);
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
