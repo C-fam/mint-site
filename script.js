@@ -2,20 +2,19 @@
  *  C's Family NFT Frontend (Ethers.js v6)
  ****************************************/
 
-/** 
- * ↓↓↓↓↓ [Monad Devnet 用: 今はコメントアウト] ↓↓↓↓↓
- * const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
- * const REQUIRED_CHAIN_ID_DEC = 20143; 
- */
+//--------------[Monad Devnet]-------------- 
+const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
+const REQUIRED_CHAIN_ID_DEC = 20143; 
+// ---------------------------------------
 
-// ↑↑↑↑↑ [Monad Devnet 用: 今はコメントアウト] ↑↑↑↑↑
-
-// --------------[Sepolia 用]--------------
+/*
+// --------------[Sepolia]--------------
 const CONTRACT_ADDRESS = "0x1314EdC0D8119C0bbd75bb6151cc837e5Ea2BfE1";
 const REQUIRED_CHAIN_ID_DEC = 11155111; 
 // ---------------------------------------
+*/
 
-// ABI (変更なし)
+// ABI
 const CONTRACT_ABI = [
   "function mint() external",
   "function mintedSoFar() external view returns (uint256)"
