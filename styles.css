@@ -73,6 +73,7 @@ main {
 .mint-container p {
   margin-bottom: 1.5rem;
   color: #555;
+  line-height: 1.4;
 }
 
 .mint-button {
