@@ -6,15 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Link external CSS -->
   <link rel="stylesheet" href="styles.css" />
-  <!-- Ethers.js CDN (for simplicity) -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <!-- Ethers.js v6 from CDN (for simplicity) -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.5.1/dist/ethers.min.js"></script>
 </head>
 <body>
   <header>
-    <h1>C's Family NFT Mint</h1>
-    <div class="wallet-status" id="walletStatus">
-      Wallet not connected
-    </div>
+    <h1>C's Family NFT Mint (Monad Devnet)</h1>
+    <div class="wallet-status" id="walletStatus">Wallet not connected</div>
     <button class="connect-button" id="connectWalletBtn">Connect Wallet</button>
   </header>
 
@@ -32,30 +30,18 @@
     <p>© 2025 C's Family Project</p>
   </footer>
 
-  <!-- JavaScript -->
+  <!-- Main JavaScript -->
   <script>
-    // Replace with your actual contract address after deployment
-    const CONTRACT_ADDRESS = "YOUR_CONTRACT_ADDRESS_HERE";
-
-    // ABI for CsFamilyNFT (only the parts we need: mintedSoFar, leftToMint, mint)
+    // Contract info
+    const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
     const CONTRACT_ABI = [
-      "function mintedSoFar() external view returns (uint256)",
-      "function leftToMint() external view returns (uint256)",
       "function mint() external",
+      "function mintedSoFar() external view returns (uint256)",
+      "function leftToMint() external view returns (uint256)"
     ];
 
-    // Network parameters for Monad Devnet
-    const MONAD_NETWORK = {
-      chainId: "0x4EB7", // 20143 in decimal, hex is 0x4EB7
-      chainName: "Monad Devnet",
-      nativeCurrency: {
-        name: "Monad Devnet",
-        symbol: "MON",
-        decimals: 18,
-      },
-      rpcUrls: ["https://rpc-devnet.monadinfra.com/rpc/3fe540e310bbb6ef0b9f16cd23073b0a"],
-      blockExplorerUrls: ["https://explorer.monad-devnet.devnet101.com/"],
-    };
+    // The required chain ID in hex (20143 => 0x4EB7)
+    const REQUIRED_CHAIN_ID = "0x4EB7";
 
     // DOM elements
     const connectWalletBtn = document.getElementById("connectWalletBtn");
@@ -63,43 +49,42 @@
     const mintBtn = document.getElementById("mintBtn");
     const supplyRemaining = document.getElementById("supplyRemaining");
 
-    // Global provider and signer
-    let provider;
-    let signer;
-    let contract;
+    // Global variables
+    let provider, signer, csFamilyContract;
 
-    // On page load, check if MetaMask is installed
+    // When the page loads, do nothing special. We'll handle connection on button click.
     window.addEventListener("load", async () => {
       if (typeof window.ethereum === "undefined") {
-        alert("MetaMask (or another wallet) is not installed.");
-        return;
+        walletStatus.textContent = "No wallet found. Please install MetaMask.";
       }
-      // Attempt to fetch supply right away (will fail if not connected)
-      // So we do that after wallet connection to avoid confusion.
     });
 
     // Connect wallet button
     connectWalletBtn.addEventListener("click", async () => {
       if (!window.ethereum) {
-        alert("No wallet found. Please install MetaMask.");
+        alert("No wallet provider found. Please install MetaMask.");
         return;
       }
 
       try {
-        // Request to add or switch to Monad Devnet
-        await setupMonadNetwork();
+        // Check if the user is on the correct chain
+        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (currentChainId !== REQUIRED_CHAIN_ID) {
+          alert("Please switch to Monad Devnet (chainId 20143) in your wallet and then connect again.");
+          return;
+        }
 
-        // Request account access
+        // If chain is correct, request accounts
         const accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
-
         if (accounts.length > 0) {
           walletStatus.textContent = `Connected: ${accounts[0]}`;
-          // Setup provider, signer, contract
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = provider.getSigner();
-          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+          // Setup Ethers with the browser provider
+          provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
+          csFamilyContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
           // Update supply info
           await updateSupplyInfo();
@@ -112,61 +97,41 @@
 
     // Mint button
     mintBtn.addEventListener("click", async () => {
-      if (!contract) {
-        alert("Please connect your wallet first.");
-        return;
-      }
-
       try {
-        // Call mint()
-        const tx = await contract.mint();
-        await tx.wait(); // Wait for transaction to be mined
+        if (!csFamilyContract) {
+          alert("Please connect your wallet on Monad Devnet first.");
+          return;
+        }
 
+        // Call contract's mint()
+        const txResponse = await csFamilyContract.mint();
+        // Wait for transaction to be confirmed
+        const txReceipt = await txResponse.wait();
+
+        // After mint is confirmed
         alert("NFT minted successfully!");
-        // Update supply info after mint
+
+        // Update supply info
         await updateSupplyInfo();
+
+        // Open Monad Devnet explorer in a new tab with the transaction hash
+        // If you want to show the contract address or transaction, you can do so:
+        const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
+        window.open(explorerUrl, "_blank"); 
       } catch (error) {
-        console.error(error);
+        console.error("Mint error:", error);
         alert(error.message || "Mint failed.");
       }
     });
 
-    // Function to update the "Supply Remaining" text
+    // Function to update "Supply Remaining"
     async function updateSupplyInfo() {
-      if (!contract) return;
+      if (!csFamilyContract) return;
       try {
-        const left = await contract.leftToMint();
+        const left = await csFamilyContract.leftToMint();
         supplyRemaining.textContent = left.toString();
       } catch (error) {
         console.error("Error fetching supply info:", error);
-      }
-    }
-
-    /**
-     * Helper function to request adding or switching to the Monad Devnet network in MetaMask
-     */
-    async function setupMonadNetwork() {
-      const chainIdHex = MONAD_NETWORK.chainId; // "0x4EB7"
-      try {
-        // Try switching first
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: chainIdHex }],
-        });
-      } catch (switchError) {
-        // If the chain is not added yet, add it
-        if (switchError.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [MONAD_NETWORK],
-            });
-          } catch (addError) {
-            throw addError;
-          }
-        } else {
-          throw switchError;
-        }
       }
     }
   </script>
