@@ -2,15 +2,24 @@
  *  C's Family NFT Frontend (Ethers.js v6)
  ****************************************/
 
-// Contract info
-const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
+/** 
+ * ↓↓↓↓↓ [Monad Devnet 用: 今はコメントアウト] ↓↓↓↓↓
+ * const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
+ * const REQUIRED_CHAIN_ID_DEC = 20143; 
+ */
+
+// ↑↑↑↑↑ [Monad Devnet 用: 今はコメントアウト] ↑↑↑↑↑
+
+// --------------[Sepolia 用]--------------
+const CONTRACT_ADDRESS = "0x1314EdC0D8119C0bbd75bb6151cc837e5Ea2BfE1";
+const REQUIRED_CHAIN_ID_DEC = 11155111; 
+// ---------------------------------------
+
+// ABI (変更なし)
 const CONTRACT_ABI = [
   "function mint() external",
   "function mintedSoFar() external view returns (uint256)"
 ];
-
-// For safer chain detection: we'll compare decimal chain IDs (20143).
-const REQUIRED_CHAIN_ID_DEC = 20143;
 
 // DOM elements
 const connectWalletBtn = document.getElementById("connectWalletBtn");
@@ -50,12 +59,13 @@ connectWalletBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Check chain ID to ensure user is on Monad Devnet
+    // Check chain ID to ensure user is on Sepolia
     const chainIdHex = await window.ethereum.request({ method: "eth_chainId" });
     console.log("chainIdHex:", chainIdHex);
+
     const chainIdDec = parseInt(chainIdHex, 16);
     if (chainIdDec !== REQUIRED_CHAIN_ID_DEC) {
-      alert("Please switch to Monad Devnet (chainId 20143) in your wallet and then reconnect.");
+      alert("Please switch to Sepolia (chainId 11155111) in your wallet and then reconnect.");
       return;
     }
 
@@ -82,15 +92,13 @@ mintBtn.addEventListener("click", async () => {
   console.log("Mint button clicked!");
   try {
     if (!csFamilyContract) {
-      alert("Please connect your wallet on Monad Devnet first.");
+      alert("Please connect your wallet on Sepolia first.");
       return;
     }
 
-    // Call contract mint()
     console.log("Calling csFamilyContract.mint()...");
     const txResponse = await csFamilyContract.mint();
     console.log("Transaction sent. Waiting for confirmation...");
-    // Wait for transaction confirmation
     const txReceipt = await txResponse.wait();
     console.log("Transaction confirmed:", txReceipt);
 
@@ -99,8 +107,8 @@ mintBtn.addEventListener("click", async () => {
     // Update minted count
     await updateMintedCount();
 
-    // Open Monad Devnet explorer in a new tab with the transaction hash
-    const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
+    // Open Sepolia Etherscan in a new tab with the transaction hash
+    const explorerUrl = "https://sepolia.etherscan.io/tx/" + txReceipt.transactionHash;
     window.open(explorerUrl, "_blank");
 
   } catch (error) {
