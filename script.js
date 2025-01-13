@@ -123,7 +123,7 @@ mintBtn.addEventListener("click", async () => {
     dialog.appendChild(message);
 
     // シェア用の文字列
-    const shareText = "Mint%20%40Cfamily_monad%20NFTs%20on%20the%20Monad%20Dev%20Net%20for%20faster%20transactions.%0A%0A%F0%9F%91%89%20Mint%20here:%20https%3A%2F%2Fc-fam.github.io%2Fmint-site%2F";
+    const shareText = "Mint%20C%27s%20Family%20NFTs%20on%20the%20Monad%20Devnet%E2%80%94it%E2%80%99s%20faster%21%0A%F0%9F%91%89%20Mint%20here%3A%20https%3A%2F%2Fc-fam.github.io%2Fmint-site%2F%0ACreated%20by%20%40Cfamily_monad";
     // Twitterのintentリンク
     const tweetUrl =
       "https://x.com/intent/post?text=" + encodeURIComponent(shareText);
