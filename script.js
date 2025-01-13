@@ -3,7 +3,7 @@
  ****************************************/
 
 // Monad Devnet config
-const CONTRACT_ADDRESS = "0xC0113040C447204A22eC6f38898fd28cFeF9bD4C";
+const CONTRACT_ADDRESS = "0xFca9b4c373f0AF8676e3F35B2cDdD5B1f519cd7a";
 const REQUIRED_CHAIN_ID_DEC = 20143;
 
 const CONTRACT_ABI = [
