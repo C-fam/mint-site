@@ -126,14 +126,14 @@ mintBtn.addEventListener("click", async () => {
     const shareText = "Mint%20C%27s%20Family%20NFTs%20on%20the%20Monad%20Devnet%E2%80%94it%E2%80%99s%20faster%21%0A%F0%9F%91%89%20Mint%20here%3A%20https%3A%2F%2Fc-fam.github.io%2Fmint-site%2F%0ACreated%20by%20%40Cfamily_monad";
     // Twitterのintentリンク
     const tweetUrl =
-      "https://x.com/intent/post?text=" + encodeURIComponent(shareText);
+      "https://x.com/intent/post?text=" + shareText;
 
     // 「Share」ボタン
     const shareBtn = document.createElement("button");
-    shareBtn.textContent = "Share on Twitter";
+    shareBtn.textContent = "Share on X";
     shareBtn.style.padding = "0.5rem 1rem";
     shareBtn.style.cursor = "pointer";
-    shareBtn.style.backgroundColor = "#1DA1F2";
+    shareBtn.style.backgroundColor = "#0F1419";
     shareBtn.style.color = "#fff";
     shareBtn.style.border = "none";
     shareBtn.style.borderRadius = "4px";
