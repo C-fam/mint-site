@@ -2,16 +2,15 @@
  *  C's Family NFT Frontend (Ethers.js v6)
  ****************************************/
 
-//--------------[Monad Devnet]-------------- 
-const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
-const REQUIRED_CHAIN_ID_DEC = 20143; 
-// ---------------------------------------
 
-/*
-// --------------[Sepolia]--------------
+  [Monad Devnet]
+const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
+const REQUIRED_CHAIN_ID_DEC = 20143;
+
+/* 
+// [Sepolia]
 const CONTRACT_ADDRESS = "0x1314EdC0D8119C0bbd75bb6151cc837e5Ea2BfE1";
-const REQUIRED_CHAIN_ID_DEC = 11155111; 
-// ---------------------------------------
+const REQUIRED_CHAIN_ID_DEC = 11155111;
 */
 
 // ABI
@@ -58,13 +57,13 @@ connectWalletBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Check chain ID to ensure user is on Sepolia
+    // Check chain ID to ensure user is on Monad Devnet
     const chainIdHex = await window.ethereum.request({ method: "eth_chainId" });
     console.log("chainIdHex:", chainIdHex);
 
     const chainIdDec = parseInt(chainIdHex, 16);
     if (chainIdDec !== REQUIRED_CHAIN_ID_DEC) {
-      alert("Please switch to Sepolia (chainId 20143) in your wallet and then reconnect.");
+      alert("Please switch to Monad Devnet (chainId 20143) in your wallet and then reconnect.");
       return;
     }
 
@@ -91,14 +90,35 @@ mintBtn.addEventListener("click", async () => {
   console.log("Mint button clicked!");
   try {
     if (!csFamilyContract) {
-      alert("Please connect your wallet on Sepolia first.");
+      alert("Please connect your wallet on Monad Devnet first.");
       return;
     }
 
     console.log("Calling csFamilyContract.mint()...");
+    // 1) Send transaction
     const txResponse = await csFamilyContract.mint();
     console.log("Transaction sent. Waiting for confirmation...");
-    const txReceipt = await txResponse.wait();
+
+    let txReceipt;
+    try {
+      // 2) Wait for confirmation
+      txReceipt = await txResponse.wait();
+    } catch (waitError) {
+      console.error("Wait error:", waitError);
+
+      // ★ 429エラー等が出た場合でも、txResponse.hashはもう送信済みの可能性あり
+      if (String(waitError).includes("429") || String(waitError).includes("Too Many Requests")) {
+        alert("Transaction may be minted, but RPC limit was hit. Opening explorer link.");
+        // Explorer link by txResponse.hash
+        const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txResponse.hash;
+        window.open(explorerUrl, "_blank");
+        return;
+      }
+
+      // その他のエラーなら再throwして共通のcatchへ
+      throw waitError;
+    }
+
     console.log("Transaction confirmed:", txReceipt);
 
     alert("NFT minted successfully!");
@@ -106,12 +126,13 @@ mintBtn.addEventListener("click", async () => {
     // Update minted count
     await updateMintedCount();
 
-    // Open Sepolia Etherscan in a new tab with the transaction hash
-    const explorerUrl = "https://sepolia.etherscan.io/tx/" + txReceipt.transactionHash;
+    // ★ 正常完了なら txReceipt.transactionHash を使う
+    const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
     window.open(explorerUrl, "_blank");
 
   } catch (error) {
     console.error("Mint error:", error);
+    // ここでは “User denied” やその他のエラーも含め、ひとまとめで alert を出す
     alert(error.message || "Mint failed.");
   }
 });
