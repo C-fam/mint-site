@@ -7,13 +7,6 @@ const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
 const REQUIRED_CHAIN_ID_DEC = 20143; 
 // ---------------------------------------
 
-/*
-// --------------[Sepolia]--------------
-const CONTRACT_ADDRESS = "0x1314EdC0D8119C0bbd75bb6151cc837e5Ea2BfE1";
-const REQUIRED_CHAIN_ID_DEC = 11155111; 
-// ---------------------------------------
-*/
-
 // ABI
 const CONTRACT_ABI = [
   "function mint() external",
@@ -64,7 +57,7 @@ connectWalletBtn.addEventListener("click", async () => {
 
     const chainIdDec = parseInt(chainIdHex, 16);
     if (chainIdDec !== REQUIRED_CHAIN_ID_DEC) {
-      alert("Please switch to Monad Devnet in your wallet and then reconnect.");
+      alert("Please switch to Monad Devnet (chainId 20143) and reconnect.");
       return;
     }
 
@@ -98,13 +91,21 @@ mintBtn.addEventListener("click", async () => {
     console.log("Calling csFamilyContract.mint()...");
     const txResponse = await csFamilyContract.mint();
     console.log("Transaction sent. Waiting for confirmation...");
+
     const txReceipt = await txResponse.wait();
     console.log("Transaction confirmed:", txReceipt);
 
-    alert(`NFT minted successfully!\nTransaction Hash:\n${txReceipt.transactionHash}`);
+    // ここでエクスプローラリンクを組み立て
+    const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
+
+    // 1つのアラートにまとめる (ポップアップは開かない)
+    alert(`NFT minted successfully!\n\nCheck your transaction:\n${explorerUrl}`);
 
     // Update minted count
     await updateMintedCount();
+
+    // ↓ ここでポップアップを開く行は削除しました
+    // window.open(explorerUrl, "_blank");
 
   } catch (error) {
     console.error("Mint error:", error);
