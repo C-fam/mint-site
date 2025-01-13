@@ -1,14 +1,12 @@
 /****************************************
- *  C's Family NFT Frontend
- *  (Ethers.js v6)
+ *  C's Family NFT Frontend (Ethers.js v6)
  ****************************************/
 
 // Contract info
 const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
 const CONTRACT_ABI = [
   "function mint() external",
-  "function mintedSoFar() external view returns (uint256)",
-  "function leftToMint() external view returns (uint256)"
+  "function mintedSoFar() external view returns (uint256)"
 ];
 
 // For safer chain detection: we'll compare decimal chain IDs (20143).
@@ -19,13 +17,13 @@ const connectWalletBtn = document.getElementById("connectWalletBtn");
 const walletStatus = document.getElementById("walletStatus");
 const mintBtn = document.getElementById("mintBtn");
 const mintedSoFarDisplay = document.getElementById("mintedSoFar");
-const leftToMintDisplay = document.getElementById("leftToMint");
 
 // Global variables
 let provider, signer, csFamilyContract;
 
 // On page load, just check if MetaMask is installed
 window.addEventListener("load", () => {
+  console.log("Script loaded. Checking for MetaMask...");
   if (typeof window.ethereum === "undefined") {
     walletStatus.textContent = "No wallet found. Please install MetaMask.";
   }
@@ -33,6 +31,7 @@ window.addEventListener("load", () => {
 
 // Connect wallet button
 connectWalletBtn.addEventListener("click", async () => {
+  console.log("Connect Wallet button clicked!");
   if (!window.ethereum) {
     alert("No wallet provider found. Please install MetaMask.");
     return;
@@ -40,9 +39,12 @@ connectWalletBtn.addEventListener("click", async () => {
 
   try {
     // Request accounts
+    console.log("Requesting eth_requestAccounts...");
     const accounts = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
+    console.log("Accounts returned:", accounts);
+
     if (accounts.length === 0) {
       alert("No accounts returned. Please check your MetaMask.");
       return;
@@ -50,6 +52,7 @@ connectWalletBtn.addEventListener("click", async () => {
 
     // Check chain ID to ensure user is on Monad Devnet
     const chainIdHex = await window.ethereum.request({ method: "eth_chainId" });
+    console.log("chainIdHex:", chainIdHex);
     const chainIdDec = parseInt(chainIdHex, 16);
     if (chainIdDec !== REQUIRED_CHAIN_ID_DEC) {
       alert("Please switch to Monad Devnet (chainId 20143) in your wallet and then reconnect.");
@@ -65,17 +68,18 @@ connectWalletBtn.addEventListener("click", async () => {
     signer = await provider.getSigner();
     csFamilyContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-    // Update supply info immediately
-    await updateSupplyInfo();
+    // Update minted count
+    await updateMintedCount();
 
   } catch (error) {
-    console.error(error);
+    console.error("Connect wallet error:", error);
     walletStatus.textContent = "Connection error";
   }
 });
 
 // Mint button
 mintBtn.addEventListener("click", async () => {
+  console.log("Mint button clicked!");
   try {
     if (!csFamilyContract) {
       alert("Please connect your wallet on Monad Devnet first.");
@@ -83,14 +87,17 @@ mintBtn.addEventListener("click", async () => {
     }
 
     // Call contract mint()
+    console.log("Calling csFamilyContract.mint()...");
     const txResponse = await csFamilyContract.mint();
+    console.log("Transaction sent. Waiting for confirmation...");
     // Wait for transaction confirmation
     const txReceipt = await txResponse.wait();
+    console.log("Transaction confirmed:", txReceipt);
 
     alert("NFT minted successfully!");
 
-    // Update supply info
-    await updateSupplyInfo();
+    // Update minted count
+    await updateMintedCount();
 
     // Open Monad Devnet explorer in a new tab with the transaction hash
     const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
@@ -102,15 +109,15 @@ mintBtn.addEventListener("click", async () => {
   }
 });
 
-// Fetch mintedSoFar() & leftToMint() and update the display
-async function updateSupplyInfo() {
+// Fetch mintedSoFar() and display "X / 50"
+async function updateMintedCount() {
   try {
+    console.log("Fetching mintedSoFar()...");
     const mintedSoFar = await csFamilyContract.mintedSoFar();
-    const leftToMint = await csFamilyContract.leftToMint();
+    console.log("mintedSoFar:", mintedSoFar.toString());
 
     mintedSoFarDisplay.textContent = mintedSoFar.toString();
-    leftToMintDisplay.textContent = leftToMint.toString();
   } catch (error) {
-    console.error("Error updating supply info:", error);
+    console.error("Error updating minted count:", error);
   }
 }
