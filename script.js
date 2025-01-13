@@ -2,12 +2,10 @@
  *  C's Family NFT Frontend (Ethers.js v6)
  ****************************************/
 
-//--------------[Monad Devnet]-------------- 
+// Monad Devnet config
 const CONTRACT_ADDRESS = "0x166de946D5B0DFDa72cc5ECccE3Bbcf9fee6C427";
-const REQUIRED_CHAIN_ID_DEC = 20143; 
-// ---------------------------------------
+const REQUIRED_CHAIN_ID_DEC = 20143;
 
-// ABI
 const CONTRACT_ABI = [
   "function mint() external",
   "function mintedSoFar() external view returns (uint256)"
@@ -22,7 +20,7 @@ const mintedSoFarDisplay = document.getElementById("mintedSoFar");
 // Global variables
 let provider, signer, csFamilyContract;
 
-// On page load, just check if MetaMask is installed
+// On page load, check if MetaMask is installed
 window.addEventListener("load", () => {
   console.log("Script loaded. Checking for MetaMask...");
   if (typeof window.ethereum === "undefined") {
@@ -30,7 +28,7 @@ window.addEventListener("load", () => {
   }
 });
 
-// Connect wallet button
+// Connect wallet
 connectWalletBtn.addEventListener("click", async () => {
   console.log("Connect Wallet button clicked!");
   if (!window.ethereum) {
@@ -51,11 +49,11 @@ connectWalletBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Check chain ID to ensure user is on Monad Devnet
+    // Check chain ID
     const chainIdHex = await window.ethereum.request({ method: "eth_chainId" });
     console.log("chainIdHex:", chainIdHex);
-
     const chainIdDec = parseInt(chainIdHex, 16);
+
     if (chainIdDec !== REQUIRED_CHAIN_ID_DEC) {
       alert("Please switch to Monad Devnet (chainId 20143) and reconnect.");
       return;
@@ -95,17 +93,11 @@ mintBtn.addEventListener("click", async () => {
     const txReceipt = await txResponse.wait();
     console.log("Transaction confirmed:", txReceipt);
 
-    // ここでエクスプローラリンクを組み立て
-    const explorerUrl = "https://explorer.monad-devnet.devnet101.com/tx/" + txReceipt.transactionHash;
-
-    // 1つのアラートにまとめる (ポップアップは開かない)
-    alert(`NFT minted successfully!\n\nCheck your transaction:\n${explorerUrl}`);
+    // Only show "NFT minted successfully!" with no pop-up or explorer link
+    alert("NFT minted successfully!");
 
     // Update minted count
     await updateMintedCount();
-
-    // ↓ ここでポップアップを開く行は削除しました
-    // window.open(explorerUrl, "_blank");
 
   } catch (error) {
     console.error("Mint error:", error);
